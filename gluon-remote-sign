@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -e
+
+privatekey="$1"
+filelist="$2"
+host="$3"
+
+if [ $# -ne 3 -o "-h" = "$1" -o "--help" = "$1" -o ! -r "$1" -o ! -r "$2" ]; then
+        cat <<EOHELP
+Usage: $0 <secret> <manifest list> <host>
+
+gluon-remote-sign fetches manifests given via <manifest list> from
+<host> using ssh, signs them and copies them back.
+EOHELP
+        exit 1
+fi
+
+files="$(cat $filelist)"
+
+tmpdir=$(mktemp -d /tmp/gluon-signing.XXXXXX)
+
+cd $tmpdir
+ssh $host "tar c $(echo $files)" | xz -9 > manifests.tar.xz
+mkdir -p extracted
+xzcat  manifests.tar.xz |tar -C extracted/ -x
+find extracted/ -type f -exec gluon-sign.sh "$privatekey" {} \;
+tar -C extracted/ -c . | xz -9 > manifests-new.tar.xz
+ssh $host "xz -d | tar -C / -x" < manifests-new.tar.xz
+
+#rm -r $tmpdir
