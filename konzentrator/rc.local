@@ -1,0 +1,5 @@
+#!/bin/sh -e
+# rc.local
+/opt/eulenfunk/konzentrator/bgp-konzentrator-setup.sh
+exit 0
+
