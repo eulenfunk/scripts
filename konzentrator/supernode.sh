@@ -1,5 +1,4 @@
 #!/bin/bash
-# Author: domfi @ forum
 
 # DBG=echo
 
@@ -13,7 +12,6 @@ function start {
 	set -x
 
 	# Adressen setzen
-	${DBG} ip -4 addr add ${SUPERNODE_TRANS_IPV4_LOCAL}/24 dev eth1
 	${DBG} ip -6 addr add ${SUPERNODE_TRANS_IPV6_LOCAL}/56 dev eth1
 
 	# Alles aus den Supernode-Netzen landet in table 42
@@ -26,7 +24,6 @@ function start {
 
 	# Routen zu den Supernodes
 	${DBG} ip -4 route add ${SUPERNODE_CLIENT_IPV4_NET} via ${SUPERNODE_TRANS_IPV4_REMOTE} dev eth1 table 42
-	#${DBG} ip -6 route add ${SUPERNODE_TRANS_IPV6_NET} via ${SUPERNODE_TRANS_IPV6_REMOTE} table 42
 	${DBG} ip -6 route add ${SUPERNODE_CLIENT_IPV6_NET} via ${SUPERNODE_TRANS_IPV6_REMOTE} table 42
 
 	set +x
@@ -54,7 +51,6 @@ function stop {
 	${DBG} ip -4 route del ${SUPERNODE_CLIENT_IPV4_NET} via ${SUPERNODE_TRANS_IPV4_REMOTE} dev eth1 table 42
 	${DBG} ip -6 route del ${SUPERNODE_CLIENT_IPV6_NET} via ${SUPERNODE_TRANS_IPV6_REMOTE} table 42
 
-	${DBG} ip -4 addr del ${SUPERNODE_TRANS_IPV4_LOCAL}/24 dev eth1
 	${DBG} ip -6 addr del ${SUPERNODE_TRANS_IPV6_LOCAL}/56 dev eth1
 
 	set +x 
