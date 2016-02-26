@@ -60,8 +60,12 @@ function show_radvdconfig
 cat << _EOF > radvd.conf.${EXT}
 interface br0 {
   AdvSendAdvert on;
+  MaxRtrAdvInterval 600;
+  MinDelayBetweenRAs 10;
   prefix ${SUPERNODE_IPV6_CLIENT_PREFIX} {
     AdvRouterAddr on;
+  };
+  RDNSS 2001:4860:4860::8844 2001:4860:4860::8888 {
   };
 };
 _EOF
