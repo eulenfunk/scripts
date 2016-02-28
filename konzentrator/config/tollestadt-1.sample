@@ -1,6 +1,9 @@
 # Beschreibender Name "stadt-N"
 SUPERNODE_NAME=tollestadt-1
 
+# Soll die Netzwerkkonfiguration automatisch beim Systemstart gesetzt werden
+AUTOSTART=1
+
 # IPv4 Konfiguration
 SUPERNODE_CLIENT_IPV4_NET=<IPv4 Netz fuer die Clients, 172.XX.0.0/16>
 SUPERNODE_TRANS_IPV4_NET=<IPv4 Transit-Netz, 172.31.YYY.0/24>
