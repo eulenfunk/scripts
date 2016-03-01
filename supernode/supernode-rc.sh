@@ -10,6 +10,8 @@ IPV6_NET_ADDRESS=${SUPERNODE_IPV6_PREFIX%/*}
 SUPERNODE_IPV6_TRANS_REMOTE=${IPV6_NET_ADDRESS}1
 SUPERNODE_IPV6_CLIENT_PREFIX=${IPV6_NET_ADDRESS}/64
 
+/sbin/iptables -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1332
+
 ${DBG} /sbin/ip -4 route add table 42 default via 172.31.254.254
 ${DBG} /sbin/ip -6 route add table 42 ${SUPERNODE_IPV6_TRANS_REMOTE} dev eth1
 ${DBG} /sbin/ip -6 route add table 42 default via ${SUPERNODE_IPV6_TRANS_REMOTE} dev eth1
