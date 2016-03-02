@@ -1,0 +1,17 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<script type="text/javascript">
+refreshImage = function()
+{
+img = document.getElementById("cam");
+img.src="http:signalcam2.jpg?rand=" + Math.random();
+}
+</script>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Webcam Freifunk Gelsenkirchen: Heinrich-K&ouml;ig-Platz</title>
+</head>
+<body onload="window.setInterval(refreshImage, 5*1000);">
+<img src="http:signalcam2.jpg" id="cam" alt="Freifunk Gelsenkirchen: Webcam Heinrich-K&ouml;ig-Platz"/>
+</body>
+</html>
