@@ -29,7 +29,7 @@ scriptdir=/opt/webcam
 webdir=/srv/http/cam
 
 # file containing webcam-login-info
-login=$(cat camlogin.conf)
+login=$(cat $scriptdir/camlogin.conf)
 
 # nicer filenames would be nice...
 getfile=signalcam.jpg
