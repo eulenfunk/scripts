@@ -6,6 +6,8 @@ privatekey="$1"
 filelist="$2"
 host="$3"
 
+GLUON_SIGN=$(dirname $(readlink -f $0))/gluon-sign.sh
+
 if [ $# -ne 3 -o "-h" = "$1" -o "--help" = "$1" -o ! -r "$1" -o ! -r "$2" ]; then
         cat <<EOHELP
 Usage: $0 <secret> <manifest list> <host>
@@ -16,6 +18,12 @@ EOHELP
         exit 1
 fi
 
+if [ -z "$(whereis -b ecdsautil | cut -d: -f2)" ]; then 
+	echo please put edcsautil from \
+	https://github.com/tcatm/ecdsautils into your \$PATH
+	exit 1
+fi
+
 files="$(cat $filelist)"
 
 tmpdir=$(mktemp -d /tmp/gluon-signing.XXXXXX)
@@ -24,7 +32,7 @@ cd $tmpdir
 ssh $host "tar c $(echo $files)" | xz -9 > manifests.tar.xz
 mkdir -p extracted
 xzcat  manifests.tar.xz |tar -C extracted/ -x
-find extracted/ -type f -exec gluon-sign.sh "$privatekey" {} \;
+find extracted/ -type f -exec $GLUON_SIGN "$privatekey" {} \;
 tar -C extracted/ -c . | xz -9 > manifests-new.tar.xz
 ssh $host "xz -d | tar -C / -x" < manifests-new.tar.xz
 
