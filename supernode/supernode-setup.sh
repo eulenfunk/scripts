@@ -14,6 +14,19 @@ SUPERNODE_IPV4_DHCP_RANGE_START=${SUPERNODE_IPV4_CLIENT_NET%.0.0/*}.1.1
 SUPERNODE_IPV4_DHCP_RANGE_END=${SUPERNODE_IPV4_CLIENT_NET%.0.0/*}.10.254
 
 EXT=eulenfunk
+
+function show_sysctl
+{
+cat << _EOF > 20-ff-config.conf.${EXT}
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
+net.ipv4.tcp_window_scaling = 1
+net.core.rmem_max = 16777216
+net.ipv4.tcp_rmem = 4096 87380 16777216
+net.ipv4.tcp_wmem = 4096 16384 16777216
+_EOF
+}
+
 function show_interfaces
 {
 
@@ -74,9 +87,11 @@ _EOF
 show_interfaces
 show_dhcpdconfig
 show_radvdconfig
+show_sysctl
 
 echo "Ausgaben in:"
 echo -e "\tinterfaces.${EXT}"
 echo -e "\tdhcpd.conf.${EXT}"
 echo -e "\tradvd.conf.${EXT}"
+echo -e "\t20-ff-config.conf.${EXT}"
 
