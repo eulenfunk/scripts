@@ -1,0 +1,31 @@
+#!/bin/bash
+# script to create a lighttpd to offer fastd-socket info as json on Port 61001, public!
+apt-get --yes install jq lighttpd sudo
+cd /usr/sbin/
+wget -O fastdstatus.pl https://raw.githubusercontent.com/FreiFunkMuenster/ansible-ffms/master/roles/fastd/files/status.pl
+chmod +x fastdstatus.pl
+echo >>/etc/sudoers
+echo "light ALL=(ALL) NOPASSWD: /usr/sbin/fastdstatus.pl">>/etc/sudoers
+echo >>/etc/sudoers
+useradd --no-create-home -G sudo --shell /bin/false light
+echo 'server.modules                 = ( "mod_compress", "mod_cgi" )'> /etc/lighttpd/lighttpd.conf
+echo 'server.document-root           = "/var/lighttpd"'>> /etc/lighttpd/lighttpd.conf
+echo 'server.errorlog                = "/var/log/lighttpd/error.log"'>> /etc/lighttpd/lighttpd.conf
+echo 'server.pid-file                = "/var/run/lighttpd.pid"'>> /etc/lighttpd/lighttpd.conf
+echo 'server.username                = "light"'>> /etc/lighttpd/lighttpd.conf
+echo 'server.groupname               = "light"'>> /etc/lighttpd/lighttpd.conf
+echo 'server.port                    = 61001'>> /etc/lighttpd/lighttpd.conf
+echo 'index-file.names               = ( "index.html" )'>> /etc/lighttpd/lighttpd.conf
+echo 'url.access-deny                = ( "~", ".inc", ".conf", ".html", ".htm" )'>> /etc/lighttpd/lighttpd.conf
+echo 'static-file.exclude-extensions = ( ".php",  ".fcgi", ".pl" )'>> /etc/lighttpd/lighttpd.conf
+echo 'compress.cache-dir             = "/var/cache/lighttpd/compress/"'>> /etc/lighttpd/lighttpd.conf
+echo 'compress.filetype              = ( "text/html", "text/plain", "" )'>> /etc/lighttpd/lighttpd.conf
+echo '$HTTP["url"]                   =~ "^/cgi-bin/" { cgi.assign = ( "" => "/bin/bash" ) }'>> /etc/lighttpd/lighttpd.conf
+mkdir /var/lighttpd
+mkdir /var/lighttpd/cgi-bin
+echo '#!/bin/bash'>/var/lighttpd/cgi-bin/fastdclients
+echo "sudo /usr/sbin/fastdstatus.pl /run/fastd.client.sock |jq ''|grep -v \\\"address\\\"">>/var/lighttpd/cgi-bin/fastdclients
+chown -R light:light /var/lighttpd
+chown -R light:light /var/log/lighttpd
+chmod +x /var/lighttpd/cgi-bin/fastdclients
+service lighttpd restart
