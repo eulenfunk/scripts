@@ -1,0 +1,101 @@
+-- Copy file here ==> /lib/gluon/announce/nodeinfo.d/wifistats
+
+SAVE_FILE = "/tmp/wifiutilization.txt"
+INTERFACE = "mesh0"
+
+function execute_command(command)
+  cmd = assert (io.popen (command))
+  local output = ""
+  for line in cmd:lines() do
+     output = output..'\n'..line
+  end -- for loop
+  cmd:close()
+  return output
+end
+
+
+function get_last_data()
+  local filehandle,err = io.open(SAVE_FILE,"r")
+  if err then return false; end
+
+  local line = filehandle:read('*l')
+  if line then
+    local _, _, active_time, busy_time = string.find(line,"^([0-9]*) ([0-9]*)$")
+    if active_time and busy_time then
+      filehandle:close()
+      return {active_time=tonumber(active_time), busy_time=tonumber(busy_time)}
+    else
+      filehandle:close()
+      return false
+    end
+  else
+    filehandle:close()
+    return false
+  end
+end
+
+
+function get_current_data()
+  local output = execute_command("iw dev "..INTERFACE.." survey dump")
+  local data = {}
+  local _, _, active_time, busy_time = string.find(output,'%[.-%]\n.-\n.-([0-9]-) ms\n.-([0-9]-) ms')
+  if active_time and busy_time then
+    return {active_time=tonumber(active_time), busy_time=tonumber(busy_time)}
+  else
+    return false
+  end
+  -- retry / transmitted_frame_count * 100
+  local output = execute_command("cat /sys/kernel/debug/ieee80211/phy0/statistics/transmitted_frame_count")
+  local  _, _, tx_frame_count = string.find(output,'^([0-9]-)$')
+
+  local output = execute_command("cat /sys/kernel/debug/ieee80211/phy0/statistics/retry_count")
+  local  _, _, retry_count = string.find(output,'^([0-9]-)$')
+
+  local output = execute_command("cat /sys/kernel/debug/ieee80211/phy0/statistics/multiple_retry_count")
+  local  _, _, multiple_retry_count = string.find(output,'^([0-9]-)$')
+
+  local output = execute_command("cat /sys/kernel/debug/ieee80211/phy0/statistics/failed_count")
+  local  _, _, failed_count = string.find(output,'^([0-9]-)$')
+
+local output = execute_command("cat /sys/kernel/debug/ieee80211/phy0/statistics/frame_duplicate_count")
+  local  _, _, frame_duplicate_count = string.find(output,'^([0-9]-)$')
+
+end
+
+
+function set_data(data)
+  local filehandle,err = io.open(SAVE_FILE,"w+")
+  if err then return false; end
+
+  filehandle:write(data["active_time"].." "..data["busy_time"].."\n")
+  filehandle:flush()
+  filehandle:close()
+  return true
+end
+
+
+
+current_data = get_current_data()
+
+if current_data then
+  last_data = get_last_data()
+  if last_data then
+    local last_minute = {active=(current_data["active_time"] - last_data["active_time"]), busy=(current_data["busy_time"] - last_data["busy_time"])}
+    last_minute["utilization"] = string.format("%.2f", last_minute["busy"] / last_minute["active"])
+    set_data(current_data)
+    return{total={active=current_data["active_time"], busy=current_data["busy_time"], utilization=string.format("%.2f", current_data["busy_time"] / current_data["active_time"])}, last_minute=last_minute}
+  end
+  set_data(current_data)
+end
+
+
+
+
+--Sample data
+--Survey data from mesh0
+--      frequency:                      2412 MHz [in use]
+--      noise:                          -95 dBm
+--      channel active time:            785305812 ms
+--      channel busy time:              197674023 ms
+--      channel receive time:           175420195 ms
+--      channel transmit time:          16634930 ms
