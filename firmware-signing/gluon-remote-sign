@@ -18,6 +18,11 @@ EOHELP
         exit 1
 fi
 
+if [ ! -f "$GLUON_SIGN" ]; then
+  echo Uhoh, could not find gluon-sign.sh
+  exit 1
+fi
+
 if [ -z "$(whereis -b ecdsautil | cut -d: -f2)" ]; then 
 	echo please put edcsautil from \
 	https://github.com/tcatm/ecdsautils into your \$PATH
