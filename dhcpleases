@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# source: http://askubuntu.com/revisions/fb67e8e2-efd4-4d0e-bb2f-416855fd8369/view-source 
+# by http://askubuntu.com/users/499043/dfsmith
 import datetime, bisect
 
 def parse_timestamp(raw_str):
