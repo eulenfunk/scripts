@@ -27,6 +27,10 @@ manifest="$2"
 upper="$(mktemp)"
 lower="$(mktemp)"
 
+if [ -z "$ECDSASIGN" ]; then
+  ECDSASIGN="ecdsautil sign"
+fi
+
 trap 'rm -f "$upper" "$lower"' EXIT
 
 awk 'BEGIN    { sep=0 }
@@ -35,7 +39,7 @@ awk 'BEGIN    { sep=0 }
                 else       print > "'"$lower"'"}' \
     "$manifest"
 
-ecdsautil sign "$upper" < "$SECRET" >> "$lower"
+$ECDSASIGN "$upper" < "$SECRET" >> "$lower"
 
 (
 	cat  "$upper"

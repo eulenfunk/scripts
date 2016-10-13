@@ -23,7 +23,11 @@ if [ ! -f "$GLUON_SIGN" ]; then
   exit 1
 fi
 
-if [ -z "$(whereis -b ecdsautil | cut -d: -f2)" ]; then 
+if [ ! -z "$(whereis -b ecdsautil | cut -d: -f2)" ]; then
+    export ECDSASIGN="ecdsautil sign"
+elif [ ! -z "$(whereis -b ecdsasign| cut -d: -f2)" ]; then
+    export ECDSASIGN=ecdsasign
+else
 	echo please put edcsautil from \
 	https://github.com/tcatm/ecdsautils into your \$PATH
 	exit 1
