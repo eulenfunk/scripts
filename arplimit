@@ -20,7 +20,7 @@ timeout $WAIT tcpdump 'arp' -e -i $INTERFACE -n -p -t 2>&1 |grep who-has |cut -d
 
 MACS=$(cat $TFILE|grep -v -i $WILDCARD|cut -d" " -f1|sort|uniq|tr "\n" " ")
 
-:>$ARPLOCK
+echo -n>$ARPLOCK
 for MAC in $MACS; do
   ARPS=$(cat $TFILE|grep $MAC|sort|uniq|wc -l)
    if [ $ARPS -gt $LIMIT ] ; then
