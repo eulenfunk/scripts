@@ -6,7 +6,7 @@ WILDCARD=$(batctl bbt|cut -d" " -f6|cut -d"/" -f2|cut -c1-7)  # do not lock for 
 LOCKFILE=/var/log/arpblock.lock # output bare list of blocked MAC
 
 #sanity check
-if [ "-z" $WAIT ] || [ "-z" $LIMIT ] || [ "-z" $INTERFACE ] || [ "-z" $WILDCARD ] || [ "-z" $ LOCKFILE ] ; then
+if [ "-z" $WAIT ] || [ "-z" $LIMIT ] || [ "-z" $INTERFACE ] || [ "-z" $WILDCARD ] || [ "-z" $LOCKFILE ] ; then
   logger -s arplimit Parameterfehler, exiting
   exit 2
  fi
