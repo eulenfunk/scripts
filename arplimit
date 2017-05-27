@@ -1,9 +1,10 @@
 #!/bin/bash
 COUNT=2000
-WAIT=180
+WAIT=120
 LIMIT=30
 INTERFACE=bat0
 WILDCARD=ca:b1:e
+LOCKFILE=/var/log/arpblock.lock
 
 modprobe ebtables ebtable_filter ebt_limit
 #ebtables -A FORWARD -o $INTERFACE -p ARP --limit 50/minute -j ACCEPT
@@ -12,12 +13,15 @@ modprobe ebtables ebtable_filter ebt_limit
 TFILE="/tmp/$(basename $0).$$.tmp"
 # echo $TFILE
 timeout $WAIT tcpdump 'arp' -e -i $INTERFACE -n -p -t 2>&1 |grep who-has |cut -d" " -f1-11|sort|uniq >$TFILE
+
 MACS=$(cat $TFILE|grep -v -i $WILDCARD|cut -d" " -f1|sort|uniq|tr "\n" " ")
 
+rm $ARPLOCK
 for MAC in $MACS; do
   ARPS=$(cat $TFILE|grep $MAC|sort|uniq|wc -l)
    if [ $ARPS -gt $LIMIT ] ; then
-     logger -s ebtables filter $MAC due to $ARPS arprequests during $WAIT seconds
+     echo "$MAC ">>$ARPLOCK
+     logger -s ebtables filter $MAC due to $ARPS arprequest during $WAIT seconds
      ebtables -D OUTPUT -d $MAC -j DROP 2>/dev/null
      ebtables -A OUTPUT -d $MAC -j DROP
      ebtables -D INPUT -d $MAC -j DROP 2>/dev/null
