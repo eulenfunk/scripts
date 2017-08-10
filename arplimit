@@ -1,0 +1,37 @@
+#!/bin/bash
+WAIT=120        # testing time
+LIMIT=20        # number of arp allowed per source MAC during test period
+INTERFACE=$(batctl bbt|cut -d" " -f6|tr -d "("|cut -d"/" -f1) # interface to probe
+WILDCARD=$(batctl bbt|cut -d" " -f6|cut -d"/" -f2|cut -c1-7)  # do not lock for nodes starting with the same 5 digits of MAC as localhost
+LOCKFILE=/var/log/arpblock.lock # output bare list of blocked MAC
+
+#sanity check
+if [ "-z" $WAIT ] || [ "-z" $LIMIT ] || [ "-z" $INTERFACE ] || [ "-z" $WILDCARD ] || [ "-z" $LOCKFILE ] ; then
+  logger -s arplimit Parameterfehler, exiting
+  exit 2
+ fi
+
+[ $(lsmod |grep ^ebtables|wc -l) -lt 1 ] && modprobe ebtables
+[ $(lsmod |grep ^ebtable_filter|wc -l) -lt 1 ] && modprobe ebtable_filter
+
+TFILE="/tmp/$(basename $0).$$.tmp"
+# echo $TFILE
+timeout $WAIT tcpdump 'arp' -e -i $INTERFACE -n -p -t 2>&1 |grep who-has |cut -d" " -f1-11|sort|uniq >$TFILE
+
+MACS=$(cat $TFILE|grep -v -i $WILDCARD|cut -d" " -f1|sort|uniq|tr "\n" " ")
+
+echo -n>$LOCKFILE
+for MAC in $MACS; do
+  ARPS=$(cat $TFILE|grep $MAC|sort|uniq|wc -l)
+   if [ $ARPS -gt $LIMIT ] ; then
+     echo "$MAC ">>$ARPLOCK
+     logger -s arplimit ebtables filter $MAC due to $ARPS arprequest during $WAIT seconds
+     ebtables -D OUTPUT -d $MAC -j DROP 2>/dev/null
+     ebtables -A OUTPUT -d $MAC -j DROP
+     ebtables -D INPUT -d $MAC -j DROP 2>/dev/null
+     ebtables -A INPUT -d $MAC -j DROP
+     ebtables -D FORWARD -d $MAC -j DROP 2>/dev/null
+     ebtables -A FORWARD -d $MAC -j DROP
+    fi
+ done
+rm  $TFILE
