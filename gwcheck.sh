@@ -28,18 +28,18 @@ if [ "$nogw" == "true" ] ; then
     elif [ -f /tmp/gwgone.2 ] ; then
       touch /tmp/gwgone.3
       logger gwcheck "restarting networking and firewall"
-      ifconfig wanif down
+      ifconfig $wanif down
       sleep 2
-      ifconfig wanif up
-      /etc/init.d/networking restart
+      ifconfig $wanif up
+      /etc/init.d/network restart
       sleep 2
       /etc/init.d/firewall restart
     elif [ -f /tmp/gwgone.1 ] ; then
       touch /tmp/gwgone.2
       logger gwcheck "ifconfig down and up"
-      ifconfig wanif down
+      ifconfig $wanif down
       sleep 3
-      ifconfig wanif up
+      ifconfig $wanif up
     else
       touch /tmp/gwgone.1
     fi
@@ -49,3 +49,4 @@ else
   logger gwcheck "gw $gateway pingable OK"
   rm -f /tmp/gwgone.* 2>/dev/null
 fi
+
