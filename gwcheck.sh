@@ -10,7 +10,7 @@ upgrade_started='/tmp/autoupdate.lock'
 #wanif=$(cat /etc/config/network|grep -A 20 wan|grep ifname|head -1|tr -d "'"|tr -s " "|cut -d " " -f 3)
 wanif=$(uci show|grep "network.lan.ifname"|tr -d "'"|cut -d= -f2)
 #gateway=$(confline /etc/config/network gateway|tr -d "'"|tr -s " "|cut -d " " -f 3 )
-gateway=$(uci show|grep "network.wan.ipaddr"|tr -d "'"|cut -d= -f2)
+gateway=$(uci show|grep "network.wan.gateway"|tr -d "'"|cut -d= -f2)
 
 [ -f $upgrade_started ] && exit
 
