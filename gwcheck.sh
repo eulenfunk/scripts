@@ -12,27 +12,33 @@ wanif=$(uci show|grep "network.lan.ifname"|tr -d "'"|cut -d= -f2)
 #gateway=$(confline /etc/config/network gateway|tr -d "'"|tr -s " "|cut -d " " -f 3 )
 gateway=$(uci show|grep "network.wan.gateway"|tr -d "'"|cut -d= -f2)
 
+# do not check while fw upgrade
 [ -f $upgrade_started ] && exit
-
-nogw=false
+# did we see the gw before?
+[ -f /tmp/gw ] && gwbefore=1
+# checkfor gw
+nogw=0
 ping -c 10 -W 1 $gateway &>/dev/nul|| nogw=true
 echo nogw equals "$nogw"
+
+# register nogw-counter in tmp-file
+gwcount=/tmp/nogwcount
 if [ "$nogw" == "true" ] ; then
-  echo .
+  if [ ! -f $gwcount ] ; then
+    echo "1">$gwcount
+   else
+    oldnum=$(cat $gwcount)
+    newnum=$(expr $oldnum + 1)
+    echo $newnum>$gwcount
+    [ "expr $newnum % 10" == "0" ] && gwbefore=1
+   fi
  else
-  gwcount=/tmp/gwcount
-   if [ ! -f $gwcount ] ; then
-     echo "1">$gwcount
-    else
-     oldnum=$(cat $gwcount)
-     newnum=`expr $oldnum + 1`
-     echo $newnum>$gwcount
-    fi
+  rm -f $gwcount 2>/dev/null
  fi
 
 if [ "$nogw" == "true" ] ; then
   logger gwcheck "gw $gateway NOT pingable"
-  if [ -f /tmp/gw ] ; then
+  if [ $gwbefore ] ; then
     if [ -f /tmp/gwgone.3 ] ; then
       [ -f $upgrade_started ] && exit
       logger gwcheck "rebooting"
@@ -59,7 +65,7 @@ if [ "$nogw" == "true" ] ; then
   fi
 else
   touch /tmp/gw
+  echo 0 > $gwcount
   logger gwcheck "gw $gateway pingable OK"
   rm -f /tmp/gwgone.* 2>/dev/null
 fi
-
