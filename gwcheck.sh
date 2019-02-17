@@ -18,6 +18,19 @@ nogw=false
 ping -c 10 -W 1 $gateway &>/dev/nul|| nogw=true
 echo nogw equals "$nogw"
 if [ "$nogw" == "true" ] ; then
+  echo .
+ else
+  gwcount=/tmp/gwcount
+   if [ ! -f $gwcount ] ; then
+     echo "1">$gwcount
+    else
+     oldnum=$(cat $gwcount)
+     newnum=`expr $oldnum + 1`
+     echo $newnum>$gwcount
+    fi
+ fi
+
+if [ "$nogw" == "true" ] ; then
   logger gwcheck "gw $gateway NOT pingable"
   if [ -f /tmp/gw ] ; then
     if [ -f /tmp/gwgone.3 ] ; then
