@@ -7,15 +7,16 @@ function confline # get first line from file $1 mathing $2, stripped of # and ; 
 }
 
 upgrade_started='/tmp/autoupdate.lock'
-#wanif=$(cat /etc/config/network|grep -A 20 wan|grep ifname|head -1|tr -d "'"|tr -s " "|cut -d " " -f 3)
-wanif=$(uci show|grep "network.lan.ifname"|tr -d "'"|cut -d= -f2)
-#gateway=$(confline /etc/config/network gateway|tr -d "'"|tr -s " "|cut -d " " -f 3 )
-gateway=$(uci show|grep "network.wan.gateway"|tr -d "'"|cut -d= -f2)
+wanif=$(uci show|grep "network.wan.ifname"|tr -d "'"|cut -d= -f2)
+## ist zwar gut... das echte gateway zu pingen, nur bringt das nichts, wenn das Modem selbst nichts mehr weiterleitet
+#gateway=$(uci show|grep "network.wan.gateway"|tr -d "'"|cut -d= -f2)
+gateway=8.8.8.8
 
 # do not check while fw upgrade
 [ -f $upgrade_started ] && exit
 # did we see the gw before?
 [ -f /tmp/gw ] && gwbefore=1
+gwbefore=1
 # checkfor gw
 nogw=0
 ping -c 10 -W 1 $gateway &>/dev/nul|| nogw=true
@@ -30,7 +31,7 @@ if [ "$nogw" == "true" ] ; then
     oldnum=$(cat $gwcount)
     newnum=$(expr $oldnum + 1)
     echo $newnum>$gwcount
-    [ "expr $newnum % 10" == "0" ] && gwbefore=1
+    [ "expr $newnum % 10" == "0" ]
    fi
  else
   rm -f $gwcount 2>/dev/null
@@ -55,10 +56,8 @@ if [ "$nogw" == "true" ] ; then
       /etc/init.d/firewall restart
     elif [ -f /tmp/gwgone.1 ] ; then
       touch /tmp/gwgone.2
-      logger gwcheck "ifconfig down and up"
-      ifconfig $wanif down
-      sleep 3
-      ifconfig $wanif up
+      logger gwcheck "network restart"
+      /etc/init.d/network restart
     else
       touch /tmp/gwgone.1
     fi
