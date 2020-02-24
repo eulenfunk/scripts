@@ -21,6 +21,7 @@ dhcp-option=3,$natip
 dhcp-option=6,$natip
 dhcp-authoritative
 no-negcache
+port=0
 EOL
  fi
 
