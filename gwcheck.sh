@@ -10,7 +10,8 @@ upgrade_started='/tmp/autoupdate.lock'
 wanif=$(uci show|grep "network.wan.ifname"|tr -d "'"|cut -d= -f2)
 ## ist zwar gut... das echte gateway zu pingen, nur bringt das nichts, wenn das Modem selbst nichts mehr weiterleitet
 #gateway=$(uci show|grep "network.wan.gateway"|tr -d "'"|cut -d= -f2)
-gateway=8.8.8.8
+#gateway=8.8.8.8
+gateway=$(ip -4 r s|grep ^default|head -1|awk  '{print $3}')
 
 # do not check while fw upgrade
 [ -f $upgrade_started ] && exit
