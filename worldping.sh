@@ -10,8 +10,8 @@ gwseen=/tmp/gw
 
 upgrade_started='/tmp/autoupdate.lock'
 wanif=$(uci -q show  network.wan.ifname|cut -d"=" -f2|tr -d \')
-gwv4=$(ip -4 r s|grep ^default|head -1|awk  '{print $3}')
-gwv6=$(ip -6 r s|grep ^default|head -1|awk  '{print $3}')
+gwv4=$(ip -4 r s|grep ^default|head -1|awk '{print $3}')
+gwv6=$(ip -6 r s|grep ^default|head -1|awk '{print $3}')
 checkhosts=$(echo $gwv4 $gwv6 $addhosts)
 
 # do not check while fw upgrade
@@ -41,7 +41,7 @@ if [ "$ipfail" == "false" ] ; then
   newnum=$(expr $oldnum + 1)
   echo $newnum>$gwlostcount.$newnum
   logger -s worldping "none of $chechosts longer pingable, lostcount=$newnum"
-  if [ $onisland -eq 0 ] ; then  # dont start action if we have neever seen the world since reboot
+  if [ $onisland -eq 0 ] ; then  # dont start action if we have never seen the world since reboot
     if [ $newnum -eq 4 ] ; then
       [ -f $upgrade_started ] && exit
       logger -s worldping "rebooting"
