@@ -13,7 +13,6 @@ wanif=$(uci -q show  network.wan.ifname|cut -d"=" -f2|tr -d \')
 gwv4=$(ip -4 r s|grep ^default|head -1|awk '{print $3}')
 gwv6=$(ip -6 r s|grep ^default|head -1|awk '{print $3}')
 checkhosts=$(echo $gwv4 $gwv6 $addhosts)
-
 # do not check while fw upgrade
 [ -f $upgrade_started ] && exit
 
@@ -29,7 +28,9 @@ for host in $checkhosts ; do
  done
 # register nogw-counter in semaphore-file
 if [ "$ipfail" == "false" ] ; then
-  [ -f $gwlostcount.* ] && logger -s worldping "OK on $host out of $checkhosts, deleting gwlostcount" && rm -f $gwlostcount.* 2>/dev/null
+  action="!"
+  [ -f $gwlostcount.* ] && action="deleting gwlostcount!" && rm -f $gwlostcount.* 2>/dev/null
+  logger -s worldping "OK on $host out of $checkhosts$action
   [ $onisland -eq 1 ] && echo 1>$gwseen # we are not on an island
  else
   if [ ! -f $gwlostcount.* ] ; then
