@@ -30,7 +30,7 @@ for host in $checkhosts ; do
 if [ "$ipfail" == "false" ] ; then
   action="!"
   [ -f $gwlostcount.* ] && action="deleting gwlostcount!" && rm -f $gwlostcount.* 2>/dev/null
-  logger -s worldping "OK on $host out of $checkhosts$action
+  logger -s worldping "OK on $host out of $checkhosts$action"
   [ $onisland -eq 1 ] && echo 1>$gwseen # we are not on an island
  else
   if [ ! -f $gwlostcount.* ] ; then
