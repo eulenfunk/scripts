@@ -9,10 +9,14 @@ gwlostcount=/tmp/gwlostcount
 gwseen=/tmp/gw
 
 upgrade_started='/tmp/autoupdate.lock'
-wanif=$(uci -q show  network.wan.ifname|cut -d"=" -f2|tr -d \')
-gwv4=$(ip -4 r s|grep ^default|head -1|awk '{print $3}')
-gwv6=$(ip -6 r s|grep ^default|head -1|awk '{print $3}')
-checkhosts=$(echo $gwv4 $gwv6 $addhosts)
+wanif=$(uci -q show network.wan.device|cut -d"=" -f2|tr -d \')
+#gwv4=$(ip -4 r s|grep ^default|head -1|awk '{print $3}')
+#gwv6=$(ip -6 r s|grep ^default|head -1|awk '{print $3}')
+gwv4=$(mtr -4 -n -m 1 8.8.8.8 -l -c1 -G1|grep "^h "|awk '{print $3}')
+#gwv6=$(mtr -6 -n -m 1 www.heise.de -l -c1 -G1|grep "^h "|awk '{print $3}')
+checkhosts=$(echo $gwv4 $addhosts)
+#checkhosts=$(echo $addhosts)
+
 # do not check while fw upgrade
 [ -f $upgrade_started ] && exit
 
@@ -24,13 +28,12 @@ onisland=1
 ipfail=true
 for host in $checkhosts ; do
   # abort check if at least one host is pingable
+#  echo ping -c $count -W $wait $host
   ping -c $count -W $wait $host &>/dev/nul && ipfail=false && break
  done
 # register nogw-counter in semaphore-file
 if [ "$ipfail" == "false" ] ; then
-  action="!"
-  [ -f $gwlostcount.* ] && action="deleting gwlostcount!" && rm -f $gwlostcount.* 2>/dev/null
-  logger -s worldping "OK on $host out of $checkhosts$action"
+  [ -f $gwlostcount.* ] && logger -s worldping "OK on $host out of $checkhosts, deleting gwlostcount" && rm -f $gwlostcount.* 2>/dev/null
   [ $onisland -eq 1 ] && echo 1>$gwseen # we are not on an island
  else
   if [ ! -f $gwlostcount.* ] ; then
